@@ -324,35 +324,6 @@ We can visualize the Data in 2D or 3D using the Tensorflow Projector. We need to
 Few methods to visualize the training data in 2D using Tensorboard
 """
 
-# import csv
-# import numpy as np
-# import tensorflow as tf
-# from PIL import Image
-
-# def get_img(img_path):
-#     print(img_path)
-#     img = tf.io.read_file(img_path)
-#     # convert the compressed string to a 3D uint8 tensor
-#     img = tf.image.decode_jpeg(img, channels=3)
-#     # resize the image to the desired size for your model
-#     img = tf.image.resize_with_pad(img, 100, 100)
-#     return img
-# # Generate embeddings
-# images_pil = []
-# images_embeddings = []
-# labels = []
-# for x in train_data.take(1500): 
-#     img_path = x[0]
-#     # img_tf = get_img(img_path)
-#     # Save both tf image for prediction and PIL image for sprite
-#     img_pil = Image.open(img_path.numpy()).resize((100, 100))
-#     img_embedding = embeddings(tf.expand_dims(img_tf, axis=0))
-#     images_embeddings.append(img_embedding.numpy()[0])
-#     images_pil.append(img_pil)
-#     # Assuming your output data is directly the label
-#     label = x[1] 
-#     labels.append(label)
-
 from tensorboard.plugins import projector
 images_embeddings = []
 images_pil = []
@@ -377,21 +348,70 @@ embedding.tensor_name = "embedding/.ATTRIBUTES/VARIABLE_VALUE"
 embedding.metadata_path = 'metadata.tsv'
 projector.visualize_embeddings(log_dir, config)
 
-# one_square_size = int(np.ceil(np.sqrt(len(images_embeddings))))
-# master_width = 100 * one_square_size
-# master_height = 100 * one_square_size
-# spriteimage = Image.new(
-#     mode="RGBA",
-#     size=(master_width, master_height),
-#     color=(0,0,0,0) # fully transparent
-#   )
-# for count, image in enumerate(images_pil):
-#     div, mod = divmod(count, one_square_size)
-#     h_loc = 100 * div
-#     w_loc = 100 * mod
-#     spriteimage.paste(image, (w_loc, h_loc))
-# spriteimage.convert("RGB").save("logs/embeddings/sprite.jpg", transparency=0)
-
 # Commented out IPython magic to ensure Python compatibility.
 # %tensorboard --logdir logs/
 
+"""### Visualizing Training data using PCA and TNE"""
+
+data = []
+labels = []
+for input_batch_data, labels_batch_data in train_data.take(100):
+  data = data +((input_batch_data.numpy()/255).reshape(*input_batch_data.numpy().shape[:1], -1)).tolist()
+  labels = labels +((labels_batch_data.numpy()).reshape(*labels_batch_data.numpy().shape[:1], -1)).tolist()
+
+np.array(data).shape
+
+np.array(labels).shape
+
+data = np.array(data)
+labels= np.array(labels)
+
+import time
+import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+feat_cols = [ 'pixel'+str(i) for i in range(data.shape[1]) ]
+df = pd.DataFrame(data,columns=feat_cols)
+df['y'] = labels
+df['label'] = df['y'].apply(lambda i: str(i))
+
+rndperm = np.random.permutation(df.shape[0])
+
+pca = PCA(n_components=3)
+pca_result = pca.fit_transform(df[feat_cols].values)
+df['pca-one'] = pca_result[:,0]
+df['pca-two'] = pca_result[:,1] 
+df['pca-three'] = pca_result[:,2]
+pca.explained_variance_ratio_
+
+plt.figure(figsize=(8,8))
+sns.scatterplot(
+    x="pca-one", y="pca-two",
+    hue="y",
+    data=df.loc[rndperm,:],
+    alpha=0.3
+)
+
+N = 10000
+df_subset = df.loc[rndperm[:N],:].copy()
+data_subset = df_subset[feat_cols].values
+
+time_start = time.time()
+tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
+tsne_results = tsne.fit_transform(data_subset)
+
+df_subset['tsne-2d-one'] = tsne_results[:,0]
+df_subset['tsne-2d-two'] = tsne_results[:,1]
+plt.figure(figsize=(6,6))
+sns.scatterplot(
+    x="tsne-2d-one", y="tsne-2d-two",
+    hue="y",
+    data=df_subset,
+    alpha=0.3
+)
+plt.xlim(-30, 30)
+plt.ylim(-30, 30)
