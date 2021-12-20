@@ -46,11 +46,10 @@ I have used the Keras applications for the pre-defined models like VGG and Incep
 We can visualize the prediction results using scatter plot between the predicted output and the actual output. Predicted output will be list of 12 probability values belong to each class, so we can take a argmax of each output which gives the classification of that input and also we have test labels output in test data. We can plot scatter plot between those two results for entire data. If there are more points at the diagonal that means it is predicting properly otherwise prediction is wrong.
 So I have used scatter plot and swarmplot to check the results of the predicted results and actual labels. I found that there are lot of results outside the diagonal which says prediction is not proper.
 
-### Visualize Datasets and Predictions
+### Visualize Training Datasets 
 
-I couldn't able to visualize properly the dataset properly. I have used different techniques like Tensorflow Projectors. I understood the process to visualize like we need to generate the metadata.tsv file and save it in the checkpoint so that when we run the tensorboard we can visualize the TSNE, UMAP, PCA of the data.
-I have tried few methods to produce the projector but not successful. I am working on the same as of now.
-
+I have visualized the Training data using the PCA and TSNE dimensionality reduction methods by calculating the pca1, pca2 and tsne1 and tsne2.
+You can go through the notebook file for more information.
  
 
 
