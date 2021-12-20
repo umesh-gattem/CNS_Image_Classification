@@ -3,6 +3,6 @@
   "__version__": "0.1",
   "__description__": " CNS Image Classification of human organs",
   "__developers__": "Umesh Kumar",
-  "__email__": "ugattem@iu.edu",
+  "__email__": ["umesh.gattem@gmail.com","ugattem@iu.edu"],
   "__url__": "https://github.com/umesh-gattem/CNS_Image_Classification.git"
 }
