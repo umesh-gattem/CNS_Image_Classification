@@ -33,22 +33,20 @@ test_data_new_path = "/content/drive/MyDrive/CNS_Image_Classification/data/test/
 """Now move the data from train_data_dir to new_path. We are doing this because the actual data images are given in "tif" format which is hard to read in tensorflow. So we are converting the "tif" images to "jpg" images using open cv library. """
 
 import cv2, os
-
 for infile in os.listdir(train_data_dir):
-    os.makedirs(train_data_new_path + infile, exist_ok=True)
-    for file in os.listdir(train_data_dir + infile):
-        read = cv2.imread(train_data_dir + infile + "/" + file)
-        outfile = file.split('.')[0] + '.jpg'
-        cv2.imwrite(train_data_new_path + infile + "/" + outfile, read, [int(cv2.IMWRITE_JPEG_QUALITY), 200])
+  os.makedirs(train_data_new_path+infile, exist_ok = True)
+  for file in os.listdir(train_data_dir + infile):
+    read = cv2.imread(train_data_dir +infile+"/"+ file)
+    outfile = file.split('.')[0] + '.jpg'
+    cv2.imwrite(train_data_new_path+infile+"/"+outfile,read,[int(cv2.IMWRITE_JPEG_QUALITY), 200])
 
 import cv2, os
-
 for infile in os.listdir(test_data_dir):
-    os.makedirs(test_data_new_path + infile, exist_ok=True)
-    for file in os.listdir(test_data_dir + infile):
-        read = cv2.imread(test_data_dir + infile + "/" + file)
-        outfile = file.split('.')[0] + '.jpg'
-        cv2.imwrite(test_data_new_path + infile + "/" + outfile, read, [int(cv2.IMWRITE_JPEG_QUALITY), 200])
+  os.makedirs(test_data_new_path+infile, exist_ok = True)
+  for file in os.listdir(test_data_dir + infile):
+    read = cv2.imread(test_data_dir +infile+"/"+ file)
+    outfile = file.split('.')[0] + '.jpg'
+    cv2.imwrite(test_data_new_path+infile+"/"+outfile,read,[int(cv2.IMWRITE_JPEG_QUALITY), 200])
 
 """Now read the train data from the directory usig the Keras image dataset from directory module. Also we are doing validation on the data.
 
@@ -60,25 +58,25 @@ img_height = 180
 img_width = 180
 
 train_data = tf.keras.utils.image_dataset_from_directory(
-    train_data_new_path,
-    validation_split=0.2,
-    subset="training",
-    seed=123,
-    image_size=(img_height, img_width),
-    batch_size=batch_size)
+  train_data_new_path,
+  validation_split=0.2,
+  subset="training",
+  seed=123,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
 
 valid_data = tf.keras.utils.image_dataset_from_directory(
-    train_data_new_path,
-    validation_split=0.2,
-    subset="validation",
-    seed=123,
-    image_size=(img_height, img_width),
-    batch_size=batch_size)
+  train_data_new_path,
+  validation_split=0.2,
+  subset="validation",
+  seed=123,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
 
 test_data = tf.keras.utils.image_dataset_from_directory(
-    test_data_new_path,
-    image_size=(img_height, img_width),
-    batch_size=batch_size)
+  test_data_new_path,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
 
 """Lets check the labels of the data"""
 
@@ -94,9 +92,9 @@ train_data
 """Lets check the shape of each batch data input and label"""
 
 for input_batch_data, labels_batch_data in train_data:
-    print(input_batch_data.shape)
-    print(labels_batch_data.shape)
-    break
+  print(input_batch_data.shape)
+  print(labels_batch_data.shape)
+  break
 
 """We can do prefetch so that input can be stored in buffer memory to read instead of reading from main memory everytime. Also it helps in fast execution since prefetch can happen during the model execution which saves some time"""
 
@@ -111,16 +109,16 @@ Important Note : We are using the Normalization layer as the first layer since i
 """
 
 model = tf.keras.Sequential([
-    tf.keras.layers.Rescaling(1. / 255),
-    tf.keras.layers.Conv2D(32, 3, activation='relu'),
-    tf.keras.layers.MaxPooling2D(),
-    tf.keras.layers.Conv2D(32, 3, activation='relu'),
-    tf.keras.layers.MaxPooling2D(),
-    tf.keras.layers.Conv2D(32, 3, activation='relu'),
-    tf.keras.layers.MaxPooling2D(),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(num_classes)
+  tf.keras.layers.Rescaling(1./255),
+  tf.keras.layers.Conv2D(32, 3, activation='relu'),
+  tf.keras.layers.MaxPooling2D(),
+  tf.keras.layers.Conv2D(32, 3, activation='relu'),
+  tf.keras.layers.MaxPooling2D(),
+  tf.keras.layers.Conv2D(32, 3, activation='relu'),
+  tf.keras.layers.MaxPooling2D(),
+  tf.keras.layers.Flatten(),
+  tf.keras.layers.Dense(128, activation='relu'),
+  tf.keras.layers.Dense(num_classes)
 ])
 
 """Once model is build we need to compile the model with proper optimizer function, loss function and the metrics.
@@ -139,7 +137,7 @@ Important Note: We are also using the tensorbaord callbacks to check the metrics
 
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='logs/')
 
-model_output = model.fit(train_data, validation_data=valid_data, epochs=30, callbacks=[tensorboard_callback])
+model_output = model.fit(train_data, validation_data=valid_data, epochs=30, callbacks= [tensorboard_callback])
 
 """Lets see the history of the model_output"""
 
@@ -192,7 +190,44 @@ prediction_output = model.predict(test_data, batch_size=64)
 
 prediction_output
 
-"""Now let train the model using the Tensorflow Pre defined models like VGG, Inception, Resnet etc. We can do this by two ways. 
+"""### Visualize the Prediction results.
+
+We can visualize the prediction results using scatter plot between the predicted output and the actual output. Predicted output will be list of 12 probability values belong to each class, so we can take a argmax of each output which gives the classification of that input and also we have test labels output in test data. We can plot scatter plot between those two results for entire data. If there are more points at the diagonal that means it is predicting properly otherwise prediction is wrong.
+"""
+
+prediction_results = []
+actual_labels = []
+for input_batch_data, labels_batch_data in test_data:
+  prediction_output = model.predict(input_batch_data, batch_size=64)
+  for pred, label in zip(prediction_output,labels_batch_data ):
+    prediction_results.append(pred.argmax())
+    actual_labels.append(label.numpy())
+print(len(prediction_results))
+print(len(actual_labels))
+
+plt.scatter(actual_labels, prediction_results, alpha=0.6, 
+          color='#FF0000', lw=1, ec='black')
+      
+classes = [0, 12]
+
+plt.plot(classes, classes, lw=1, color='#0000FF')
+plt.ticklabel_format(useOffset=False, style='plain')
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.xlim(classes)
+plt.ylim(classes)
+
+plt.tight_layout()
+plt.show()
+
+"""From above plot we can see that there are lot values outside the diagonal which says all the images are not predicted properly. But since it is scatter plot there can be data overlap. Lets try with some other plot to check the results again."""
+
+import seaborn as sns
+sns.swarmplot(x=actual_labels, y=prediction_results)
+
+"""From above swarmplot we can clearly see that there are lot of values outside the diagonal.
+
+Now let train the model using the Tensorflow Pre defined models like VGG, Inception, Resnet etc. We can do this by two ways. 
 1) By using the TF Hub Models
 2) By using the Keras applications models
 
@@ -205,7 +240,6 @@ from keras.applications.vgg16 import VGG16
 from keras.models import Model
 from keras.layers import Dense
 from keras.layers import Flatten
-
 model = VGG16(include_top=False, input_shape=(180, 180, 3))
 flat1 = Flatten()(model.layers[-1].output)
 class1 = Dense(128, activation='relu')(flat1)
@@ -214,9 +248,9 @@ model = Model(inputs=model.inputs, outputs=output)
 
 """Compile the model and fit the model using train data and the valid data"""
 
-model.compile(optimizer='adam', loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
+model.compile(optimizer='adam',loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
 
-model_output = model.fit(train_data, validation_data=valid_data, epochs=10)
+model_output = model.fit(train_data,validation_data=valid_data, epochs=10)
 
 """As we can see the results are not that good using the vgg network. Lets try the same model using the inception network.
 
@@ -227,14 +261,13 @@ from tensorflow.keras.applications import InceptionV3
 from keras.models import Model
 from keras.layers import Dense
 from keras.layers import Flatten
-
 model = InceptionV3(include_top=False, input_shape=(180, 180, 3))
 flat1 = Flatten()(model.layers[-1].output)
 class1 = Dense(128, activation='relu')(flat1)
 output = Dense(num_classes)(class1)
 model = Model(inputs=model.inputs, outputs=output)
 
-model.compile(optimizer='adam', loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
+model.compile( optimizer='adam', loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
 
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='inception_logs/')
 
@@ -329,11 +362,11 @@ for images, labels in train_data.take(100):
     images_pil.append(images)
 
 log_dir = "logs/"
-os.makedirs("logs/embeddings", exist_ok=True)
+os.makedirs("logs/embeddings", exist_ok = True)
 with open("logs/embeddings/metadata.tsv", "w") as fw:
     csv_writer = csv.writer(fw, delimiter="\t")
     csv_writer.writerows(images_embeddings)
-
+ 
 checkpoint = tf.train.Checkpoint()
 checkpoint.save(os.path.join(log_dir, "embedding.ckpt"))
 
@@ -361,3 +394,4 @@ projector.visualize_embeddings(log_dir, config)
 
 # Commented out IPython magic to ensure Python compatibility.
 # %tensorboard --logdir logs/
+
