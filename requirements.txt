@@ -6,3 +6,4 @@ keras
 tensorboard
 setuptools
 munch
+seaborn
